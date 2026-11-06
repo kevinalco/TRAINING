@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="description" content="Entrenamiento Full Body en casa: plan de 100 días, seguimiento de series y progreso local.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>FULLBODY — 100 días</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { colors: { ink:'#000000', panel:'#121212', panel2:'#1e1e1e', acid:'#e11d2e', muted:'#9CA3AF' }, fontFamily: { sans:['Inter','ui-sans-serif','system-ui'] } } } };
+  </script>
+  <style>
+    :root { color-scheme: dark; --yellow:#FACC15; --red:#e11d2e; --panel:#121212; --panel2:#1e1e1e; }
+    * { -webkit-tap-highlight-color:transparent; box-sizing:border-box; }
+    html { background:#000; scroll-behavior:smooth; }
+    body { margin:0; background:#000; color:#fff; font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif; padding-bottom:calc(92px + env(safe-area-inset-bottom)); }
+    button, input, textarea { font:inherit; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible { outline:2px solid var(--yellow); outline-offset:3px; }
+    .day-pill { min-width:68px; min-height:58px; border:1px solid #303030; border-radius:16px; background:#121212; padding:8px; flex:0 0 auto; }
+    .day-pill[aria-pressed="true"] { color:#fff; background:var(--red); border-color:var(--red); }
+    .day-pill .small { font-size:10px; opacity:.7; display:block; }
+    .exercise-card { background:var(--panel); border:1px solid #242424; border-radius:22px; overflow:hidden; }
+    .series-row { display:flex; align-items:center; gap:12px; min-height:62px; padding:10px 14px; border-radius:14px; background:#1b1b1b; transition:background .18s,opacity .18s; }
+    .series-row.done { background:#321317; opacity:.82; }
+    .series-row.done .series-label { text-decoration:line-through; color:#ff6470; }
+    .series-check { width:30px; height:30px; flex:0 0 30px; accent-color:#e11d2e; cursor:pointer; }
+    .meter { height:7px; border-radius:999px; background:#2b2b2b; overflow:hidden; }
+    .meter-fill { height:100%; width:0; background:var(--red); transition:width .25s ease; border-radius:999px; }
+    .nav-btn { min-height:56px; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#9CA3AF; font-size:11px; }
+    .nav-btn[aria-current="page"] { color:#ff4b58; }
+    .nav-btn svg { width:20px; height:20px; }
+    .visual { height:124px; background:radial-gradient(circle at 50% 30%,#4b171d 0,#241014 42%,#101010 78%); display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+    .visual svg { width:76px; height:76px; color:#ff4b58; opacity:.95; }
+    .tag { border:1px solid #343434; background:#1a1a1a; border-radius:999px; padding:6px 10px; font-size:11px; color:#d4d4d4; }
+    .primary { background:#e11d2e; color:#fff; font-weight:800; min-height:54px; border-radius:16px; padding:0 18px; }
+    .secondary { background:#202020; border:1px solid #333; color:#fff; min-height:50px; border-radius:15px; padding:0 16px; }
+    .field { width:100%; background:#1b1b1b; border:1px solid #343434; border-radius:12px; padding:12px; color:#fff; min-height:46px; }
+    .hide-scrollbar { scrollbar-width:none; } .hide-scrollbar::-webkit-scrollbar { display:none; }
+    .toast { position:fixed; bottom:calc(102px + env(safe-area-inset-bottom)); left:50%; transform:translate(-50%,12px); opacity:0; pointer-events:none; background:#facc15; color:#000; padding:11px 16px; border-radius:12px; font-size:13px; font-weight:700; transition:all .2s; z-index:50; white-space:nowrap; }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+    .calendar-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; }
+    .calendar-day { min-width:0; aspect-ratio:1/1; border:1px solid #292929; border-radius:12px; background:#151515; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font-size:12px; }
+    .calendar-day.training { border-color:#61232b; } .calendar-day.rest { color:#888; background:#101010; } .calendar-day.done { box-shadow:inset 0 -3px #e11d2e; } .calendar-day[aria-pressed="true"] { background:#e11d2e; color:#fff; border-color:#e11d2e; font-weight:900; }
+    .timer-digits { font-variant-numeric:tabular-nums; font-size:38px; font-weight:900; letter-spacing:-.04em; }
+    
+    .week-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+    .week-toggle { color:#ff6470; font-weight:800; padding:8px 10px; border:1px solid #57232a; border-radius:12px; background:#1c0d10; }
+    .day-pill { min-width:0; width:100%; }
+    .week-days { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; }
+    .rep-select { width:74px; min-height:48px; border-radius:12px; background:#290f13; color:#fff; border:1px solid #74303a; text-align:center; font-size:18px; font-weight:900; padding:4px; appearance:auto; }
+    .rep-select:focus { outline:2px solid #e11d2e; }
+    .stopwatch { font-variant-numeric:tabular-nums; font-size:clamp(42px,12vw,62px); font-weight:900; letter-spacing:-.06em; text-align:center; }
+    .catalog-card { background:#151515; border:1px solid #292929; border-left:3px solid #e11d2e; border-radius:14px; padding:13px; }
+    .notice { color:#facc15; }
+    @media (min-width:700px)
+ { body { max-width:760px; margin:0 auto; border-left:1px solid #171717; border-right:1px solid #171717; } }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; transition:none!important; animation:none!important; } }
+  </style>
+</head>
+<body>
+  <header class="px-5 pt-5 pb-4 sticky top-0 z-20 bg-black/95 backdrop-blur border-b border-white/5">
+    <div class="flex items-center justify-between gap-3">
+      <div>
+        <div class="text-xs tracking-[.25em] text-acid font-black">FULLBODY<span class="text-white"> / HOME</span></div>
+        <h1 class="text-2xl font-black tracking-tight mt-1">Tu entrenamiento<span class="text-acid">.</span></h1>
+      </div>
+      <div class="text-right">
+        <div class="text-xs text-muted">PLAN</div>
+        <div class="font-extrabold text-lg">100 <span class="text-acid">DÍAS</span></div>
+      </div>
+    </div>
+    <div class="mt-4 flex items-center justify-between text-sm">
+      <span id="phaseLabel" class="text-muted">Fase 1 · Adaptación</span>
+      <span id="overallCount" class="font-bold">0/100 días completados</span>
+    </div>
+    <div class="meter mt-2"><div id="overallMeter" class="meter-fill"></div></div>
+  </header>
+
+  <main class="px-4 pt-5 space-y-6">
+    <section aria-label="Selector de día">
+      <div class="week-head">
+        <div><p class="text-xs text-muted uppercase tracking-widest">Plan · semana actual</p><h2 id="weekTitle" class="text-lg font-bold mt-1">Semana 1</h2></div>
+        <button id="todayBtn" class="week-toggle">Ir al día actual ↗</button>
+      </div>
+      <div id="dayPicker" class="week-days pb-2" role="group" aria-label="Días de la semana"></div>
+      <div class="flex justify-end mt-1"><button id="calendarToggle" class="text-sm font-bold text-white/80 px-2 py-2" aria-expanded="false">Ver calendario completo ﹀</button></div>
+      <div class="flex justify-between items-center mt-2 text-xs text-muted">
+        <span id="dayStatus">DÍA 1 · ENTRENAMIENTO A</span>
+        <span id="dayPhase">Días 1–25</span>
+      </div>
+    </section>
+
+    <section id="sessionHero" class="rounded-3xl bg-panel border border-white/10 p-5">
+      <div class="flex justify-between items-start gap-4">
+        <div>
+          <span id="sessionBadge" class="tag">ENTRENAMIENTO A</span>
+          <h2 id="sessionTitle" class="text-2xl font-black mt-3 leading-tight">Empuje + Pierna</h2>
+          <p id="sessionDesc" class="text-sm text-muted mt-2 max-w-sm">Fuerza y control. Mantén una técnica limpia en cada repetición.</p>
+        </div>
+        <div class="rounded-2xl bg-acid text-black w-14 h-14 flex flex-col items-center justify-center shrink-0">
+          <span id="heroDay" class="text-xl font-black leading-none">01</span><span class="text-[9px] font-black mt-1">DÍA</span>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-2 mt-5">
+        <div class="rounded-2xl bg-panel2 p-3"><div class="text-xs text-muted">Duración</div><div class="font-bold mt-1">35–50 min</div></div>
+        <div class="rounded-2xl bg-panel2 p-3"><div class="text-xs text-muted">Objetivo</div><div class="font-bold mt-1">RPE 7–8</div></div>
+        <div class="rounded-2xl bg-panel2 p-3"><div class="text-xs text-muted">Descanso</div><div class="font-bold mt-1">45–90 s</div></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="flex justify-between items-end gap-3 mb-3">
+        <div><p class="text-xs text-muted uppercase tracking-widest">Seguimiento</p><h2 class="text-xl font-black mt-1">Tu sesión</h2></div>
+        <div class="text-right"><div id="sessionCount" class="font-black text-xl">0/0</div><div class="text-xs text-muted">series completadas</div></div>
+      </div>
+      <div class="meter mb-4"><div id="sessionMeter" class="meter-fill"></div></div>
+      <div id="workoutContent" class="space-y-4"></div>
+    </section>
+
+    <section class="rounded-2xl bg-panel border border-white/10 p-4">
+      <div class="flex gap-3 items-start">
+        <div class="w-10 h-10 rounded-xl bg-acid/10 text-acid flex items-center justify-center text-xl">↗</div>
+        <div class="flex-1">
+          <h3 class="font-bold">Calentamiento y vuelta a la calma</h3>
+          <p class="text-sm text-muted mt-1">Antes: 5 min de movilidad y una serie ligera de cada patrón principal. Después: 3–5 min de estiramientos estáticos de los grupos trabajados.</p>
+        </div>
+      </div>
+      <div class="mt-3 pt-3 border-t border-white/10 text-sm text-muted">Objetivo: últimas 2–3 repeticiones difíciles manteniendo buena técnica. Si aparece dolor agudo o articular, para y modifica el ejercicio.</div>
+    </section>
+
+    <section class="rounded-2xl bg-panel border border-white/10 p-4" aria-label="Cronómetro de entrenamiento">
+      <div class="flex items-center justify-between"><div><p class="text-xs text-muted uppercase tracking-widest">Entreno en directo</p><h2 class="text-lg font-black mt-1">Cronómetro</h2></div><span class="tag">mm:ss.d</span></div>
+      <div id="stopwatchDisplay" class="stopwatch mt-3" role="timer" aria-live="off">00:00.0</div>
+      <div class="grid grid-cols-3 gap-2 mt-3"><button id="stopwatchStart" class="primary">Iniciar</button><button id="stopwatchLap" class="secondary">Vuelta</button><button id="stopwatchReset" class="secondary">Reiniciar</button></div>
+      <div id="stopwatchLaps" class="mt-3 space-y-1 text-sm text-muted"></div>
+      <div class="mt-4 pt-3 border-t border-white/10 flex items-center justify-between"><div><p class="text-xs text-muted">Temporizador de descanso</p><p id="timerDisplay" class="font-black text-xl">01:00</p></div><div class="flex gap-2"><button id="timerMinus" class="secondary">−15s</button><button id="timerStart" class="secondary">Iniciar</button><button id="timerPlus" class="secondary">+15s</button><button id="timerReset" class="secondary">↺</button></div></div>
+    </section>
+    <section id="calendarSection" class="rounded-2xl bg-panel border border-white/10 p-4 scroll-mt-28" hidden>
+      <div class="flex items-end justify-between gap-3 mb-4"><div><p class="text-xs text-muted uppercase tracking-widest">Vista completa</p><h2 class="text-xl font-black mt-1">Calendario de 100 días</h2></div><span class="tag">A/B/C/D · descanso</span></div>
+      <div id="calendarGrid" class="calendar-grid" aria-label="Calendario de entrenamiento"></div>
+      <p class="text-xs text-muted mt-3 notice">Rojo inferior = sesión marcada como completada.</p>
+    </section>
+
+
+    <section id="exerciseSection" class="space-y-3" hidden>
+      <div><p class="text-xs text-muted uppercase tracking-widest">Biblioteca</p><h2 class="text-xl font-black mt-1">Listado de ejercicios</h2><p class="text-sm text-muted mt-1">Catálogo del plan original, con músculos y notas de ejecución.</p></div>
+      <div id="exerciseCatalog" class="space-y-2"></div>
+    </section>
+
+    <section id="progressSection" class="rounded-2xl bg-panel border border-white/10 p-4 scroll-mt-28">
+      <p class="text-xs text-muted uppercase tracking-widest">Resumen</p><h2 class="text-xl font-black mt-1">Tu progreso</h2>
+      <div class="grid grid-cols-3 gap-2 mt-4">
+        <div class="rounded-xl bg-panel2 p-3"><div class="text-xs text-muted">Completados</div><div id="statCompleted" class="text-2xl font-black mt-1">0</div></div>
+        <div class="rounded-xl bg-panel2 p-3"><div class="text-xs text-muted">Por hacer</div><div id="statRemaining" class="text-2xl font-black mt-1">100</div></div>
+        <div class="rounded-xl bg-panel2 p-3"><div class="text-xs text-muted">Porcentaje</div><div id="statPercent" class="text-2xl font-black mt-1">0%</div></div>
+      </div>
+      <div class="mt-4 space-y-3" id="phaseStats"></div>
+      <button id="exportBtn" class="secondary w-full mt-4">Exportar copia de mis datos (.json)</button>
+    </section>
+
+    <section class="pb-2">
+      <div class="flex items-center justify-between mb-3">
+        <div><p class="text-xs text-muted uppercase tracking-widest">Registro personal</p><h2 class="text-lg font-bold mt-1">Notas de hoy</h2></div>
+        <span class="text-xs text-muted">Guardado automático</span>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <label class="text-xs text-muted">Banda / carga<input id="loadInput" class="field mt-2" placeholder="Ej. banda media"></label>
+        <label class="text-xs text-muted">RPE (1–10)<input id="rpeInput" class="field mt-2" inputmode="numeric" type="number" min="1" max="10" placeholder="7–8"></label>
+      </div>
+      <label class="block text-xs text-muted mt-3">Notas<textarea id="notesInput" class="field mt-2" rows="3" placeholder="Cómo te has sentido, reps reales, molestias…"></textarea></label>
+    </section>
+
+    <section class="flex flex-col gap-3 pb-3">
+      <button id="finishBtn" class="primary w-full text-base">Marcar sesión como completada ✓</button>
+      <button id="resetBtn" class="secondary w-full">Reiniciar entrenamiento de este día</button>
+      <p class="text-xs text-muted text-center">Los datos se guardan en este dispositivo y navegador mediante LocalStorage.</p>
+    </section>
+  </main>
+
+  <nav class="fixed bottom-0 left-0 right-0 z-30 border-t border-white/10 bg-black/95 backdrop-blur" aria-label="Navegación principal">
+    <div class="max-w-[760px] mx-auto flex px-4" style="padding-bottom:env(safe-area-inset-bottom)">
+      <button class="nav-btn" data-nav="workout" aria-current="page"><span>◉</span><span>Entreno</span></button>
+      <button class="nav-btn" data-nav="exercises"><span>▤</span><span>Ejercicios</span></button>
+      <button class="nav-btn" data-nav="stats"><span>↗</span><span>Progreso</span></button>
+    </div>
+  </nav>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script type="module">
+const STORAGE_KEY = 'fullbody-home-100-v1';
+
+const workouts = {
+ A: { title:'Empuje + Pierna dominante cuádriceps', desc:'Fuerza de empuje y trabajo dominante de cuádriceps.', exercises:[
+  ['squat-band','Sentadilla con banda','3–4 × 10–15','75–90 s','Cuádriceps · glúteos'],
+  ['pushup-bars','Flexiones con soportes','3–4 × 8–15','75–90 s','Pectoral · tríceps · hombros'],
+  ['row-band','Remo con banda (bent-over o seated)','3–4 × 10–15','60–75 s','Espalda · bíceps'],
+  ['chair-dips','Fondos en silla','3 × 8–12','60 s','Tríceps · pectoral inferior'],
+  ['hip-thrust','Hip thrust / Puente de glúteos con banda','3 × 12–15','60 s','Glúteos'],
+  ['plank','Plancha frontal','3 × 30–50 s','45 s','Core'],
+  ['face-pull','Face pull con banda','2–3 × 12–15','45 s','Deltoides posteriores · trapecio']
+ ]},
+ B: { title:'Tirón + Pierna dominante posterior', desc:'Cadena posterior, espalda y trabajo unilateral.', exercises:[
+  ['rdl-band','Peso muerto rumano con banda','3–4 × 10–14','75–90 s','Isquiotibiales · glúteos'],
+  ['row-band-b','Remo con banda (variante distinta a A)','3–4 × 10–15','75 s','Dorsales · romboides · bíceps'],
+  ['incline-pushup','Flexiones inclinadas (pies elevados)','3 × 8–12','75 s','Pectoral superior · hombros'],
+  ['lunges','Zancadas (o búlgara asistida)','3 × 8–12/pierna','60–75 s','Cuádriceps · glúteos'],
+  ['military-press','Press militar con banda','3 × 10–12','60 s','Hombros'],
+  ['biceps-curl','Curl de bíceps con banda','2–3 × 12–15','45 s','Bíceps'],
+  ['side-plank-deadbug','Plancha lateral + Dead bug','2 × 30 s/lado + 2 × 10','45 s','Oblicuos · core profundo']
+ ]},
+ C: { title:'Equilibrio + Core + Unilateral', desc:'Control, estabilidad y trabajo unilateral.', exercises:[
+  ['bulgarian','Sentadilla búlgara con banda','3 × 8–12/pierna','75 s','Cuádriceps · glúteos · core'],
+  ['diamond-pushup','Flexiones diamante o cerradas','3 × 8–12','75 s','Tríceps · pectoral'],
+  ['single-row','Remo unilateral con banda','3 × 10–12/brazo','60 s','Espalda · bíceps'],
+  ['lateral-raise','Elevaciones laterales con banda','3 × 12–15','45–60 s','Deltoides laterales'],
+  ['triceps-overhead','Extensión tríceps overhead con banda','3 × 12–15','45 s','Tríceps'],
+  ['hip-abduction','Abducciones de cadera con banda','2–3 × 15–20','45 s','Glúteo medio'],
+  ['bird-dog-superman','Bird-dog + Superman','2–3 × 8–10 + 12','45 s','Core · estabilidad lumbar']
+ ]},
+ D: { title:'Volumen + Resistencia muscular', desc:'Volumen total y resistencia. En supersets, haz ambos ejercicios seguidos y descansa después.', exercises:[
+  ['squat-band-d','Sentadilla con banda (más reps)','3–4 × 15–20','60–75 s','Cuádriceps · glúteos'],
+  ['pushup-any','Flexiones (cualquier variante)','3–4 × 10–15','60–75 s','Pectoral · tríceps'],
+  ['rdl-goodmorning','Peso muerto rumano o Good morning','3 × 12–15','60 s','Isquiotibiales · lumbares'],
+  ['row-facepull','Remo con banda + Face pull (superset)','3 × 12 + 12','60 s','Espalda · deltoides posteriores'],
+  ['hip-abduction-superset','Hip thrust + Abducciones (superset)','3 × 12 + 15','60 s','Glúteos'],
+  ['arms-superset','Curl bíceps + Extensión tríceps','2–3 × 12–15','45 s','Bíceps · tríceps'],
+  ['mountain-plank','Mountain climbers o Plancha','3 × 30–40 s','40 s','Core · cardio ligero']
+ ]}
+};
+
+// Calendario transcrito del PDF. D = descanso.
+const schedule = [
+'A','R','B','C','R','D','R','B','R','A','D','R','C','R','C','R','D','A','R','B',
+'R','D','R','C','B','R','A','R','A','R','B','C','R','D','R','B','R','A','D','R',
+'C','R','C','R','D','A','R','B','R','D','R','C','B','R','A','R','A','R','B','C',
+'R','D','R','B','R','A','D','R','C','R','C','R','D','A','R','B','R','D','R','C',
+'B','R','A','R','A','R','B','C','R','D','R','B','R','A','D','R','C','R','C','R'
+];
+const dayNames = { A:'Entrenamiento A', B:'Entrenamiento B', C:'Entrenamiento C', D:'Entrenamiento D', R:'Descanso' };
+
+const exerciseCatalog = [
+ ['Sentadilla con banda','Cuádriceps, glúteos','Banda bajo pies y sobre hombros o en manos'],
+ ['Sentadilla búlgara (con banda)','Cuádriceps, glúteos, core','Pie trasero elevado (silla/sofá). Banda opcional'],
+ ['Peso muerto rumano con banda','Isquiotibiales, glúteos','Banda bajo pies, agarre en extremos'],
+ ['Hip thrust / Puente de glúteos con banda','Glúteos','Banda sobre rodillas o bajo pies'],
+ ['Zancadas caminando o estáticas','Cuádriceps, glúteos','Con o sin banda'],
+ ['Flexiones (push-ups) con soportes','Pectoral, tríceps, hombros','Soportes de flexión. Variar agarre'],
+ ['Flexiones diamante / cerradas','Tríceps, pectoral interno','Manos juntas formando diamante'],
+ ['Flexiones inclinadas (pies elevados)','Pectoral superior, hombros','Pies en silla/sofá'],
+ ['Fondos en silla / banco','Tríceps, pectoral inferior','Manos en silla, pies en suelo'],
+ ['Remo con banda (seated o bent-over)','Dorsales, romboides, bíceps','Banda anclada o bajo pies'],
+ ['Face pull con banda','Deltoides posteriores, trapecio','Banda anclada a altura media-alta'],
+ ['Press militar con banda','Hombros (deltoides)','Banda bajo pies, press overhead'],
+ ['Elevaciones laterales con banda','Deltoides laterales','Banda bajo pies o anclada'],
+ ['Curl de bíceps con banda','Bíceps','Banda bajo pies'],
+ ['Extensión de tríceps overhead con banda','Tríceps','Banda anclada o bajo pies'],
+ ['Plancha (front plank)','Core completo','Mantener alineación'],
+ ['Plancha lateral','Oblicuos, core','Ambos lados'],
+ ['Dead bug','Core profundo','Control y no arquear lumbar'],
+ ['Mountain climbers','Core, cardio ligero','Controlado, no rebotar'],
+ ['Bird-dog','Core, estabilidad lumbar','Extensión opuesta brazo-pierna'],
+ ['Superman / Extensión lumbar','Erectores espinales, glúteos','Levantar pecho y piernas'],
+ ['Good morning con banda','Isquiotibiales, lumbares','Banda sobre hombros'],
+ ['Pájaros / Reverse fly con banda','Deltoides posteriores','Banda a la altura del pecho'],
+ ['Curl de piernas con banda (prone)','Isquiotibiales','Banda anclada a tobillo'],
+ ['Abducciones de cadera con banda','Glúteo medio','Banda sobre rodillas o tobillos']
+];
+
+const phaseFor = day => day <= 25 ? {label:'Fase 1 · Adaptación',range:'Días 1–25'} : day <= 50 ? {label:'Fase 2 · Volumen',range:'Días 26–50'} : day <= 75 ? {label:'Fase 3 · Fuerza e hipertrofia',range:'Días 51–75'} : {label:'Fase 4 · Consolidación',range:'Días 76–100'};
+const state = loadState();
+let selectedDay = state.lastDay || 1;
+const $ = id => document.getElementById(id);
+const safe = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return {days:{}, completedDays:[], lastDay:1};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object' || !parsed.days) throw new Error('Invalid state');
+    return {days:parsed.days || {}, completedDays:Array.isArray(parsed.completedDays)?parsed.completedDays:[],lastDay:Number(parsed.lastDay)||1};
+  } catch (error) {
+    console.warn('No se pudo leer el progreso guardado.', error);
+    return {days:{},completedDays:[],lastDay:1};
+  }
+}
+function saveState() {
+  try { state.lastDay = selectedDay; localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch (error) { toast('No se pudo guardar: almacenamiento lleno o bloqueado.'); console.error(error); }
+}
+function dayState(day=selectedDay) {
+  if (!state.days[day]) state.days[day] = {series:{},load:'',rpe:'',notes:''};
+  if (!state.days[day].series) state.days[day].series = {};
+  return state.days[day];
+}
+function sessionType(day=selectedDay) { return schedule[day-1]; }
+function getSeriesCount(exercise, day=selectedDay) {
+  // El PDF da rangos de series (3–4 / 2–3); se usa el extremo inferior como base conservadora.
+  const match = exercise.match(/^(\d+)(?:[–-](\d+))?/);
+  return match ? Number(match[1]) : 3;
+}
+function totalForDay(day) {
+  const type=sessionType(day); if(type==='R') return 0;
+  return workouts[type].exercises.reduce((sum,e)=>sum+getSeriesCount(e[2]),0);
+}
+function completedForDay(day) {
+  const d=dayState(day); return Object.values(d.series).filter(Boolean).length;
+}
+function isDayComplete(day) {
+  if(sessionType(day)==='R') return false;
+  const total=totalForDay(day);
+  return total>0 && completedForDay(day)>=total;
+}
+function iconSvg(type) {
+ const paths = {
+  squat:'<circle cx="12" cy="4" r="2"/><path d="M12 6v6l-5 4m5-4 5 4M7 16l-2 5m7-5 3 5M7 9l-4 2m9-5 5 2"/>',
+  push:'<circle cx="18" cy="5" r="2"/><path d="M16 8 9 12 4 13M9 12l4 5 5 1M4 13l-1 5m15 0 2 2"/>',
+  row:'<circle cx="16" cy="5" r="2"/><path d="m14 8-5 5-5-1m5 1 5 4 3 4M4 12l-1 5M9 13l-2 6M8 7l6 2"/>',
+  leg:'<circle cx="12" cy="4" r="2"/><path d="m12 6-2 6-5 3m7-3 4 4m-9-1-2 6m11-5 2 5"/>',
+  core:'<circle cx="12" cy="5" r="2"/><path d="M12 7v7m0-4-5 4-3 4m8-8 5 4 3 4M8 14l-2 6m10-6 2 6"/>',
+  arm:'<circle cx="12" cy="5" r="2"/><path d="M12 7v6m0-3 6 2 2 4m-8-3-5 2-2 5"/>',
+  default:'<circle cx="12" cy="5" r="2"/><path d="M12 7v7m0-4-5 4-2 6m7-6 5 6m-8-8 5 1"/>'
+ };
+ const category=/plancha|dead bug|bird-dog|superman|mountain|core/i.test(type)?'core':/flex|fondos|press|tríceps|bíceps|curl|face|elevaciones/i.test(type)?'arm':/remo/i.test(type)?'row':/sentadilla|zancada|peso muerto|hip thrust|abducciones|good morning/i.test(type)?'leg':'default';
+ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[category]||paths.default}</svg>`;
+}
+let timerSeconds = 60, timerRunning = false, timerInterval = null;
+function paintTimer(){ const m=String(Math.floor(timerSeconds/60)).padStart(2,'0'), sec=String(timerSeconds%60).padStart(2,'0'); $('timerDisplay').textContent=`${m}:${sec}`; $('timerStart').textContent=timerRunning?'Pausar':'Iniciar'; }
+function stopTimer(){ timerRunning=false; if(timerInterval){clearInterval(timerInterval);timerInterval=null;} paintTimer(); }
+$('timerStart').addEventListener('click',()=>{ if(timerRunning){stopTimer();return;} if(timerSeconds<=0)timerSeconds=60; timerRunning=true; paintTimer(); timerInterval=setInterval(()=>{timerSeconds=Math.max(0,timerSeconds-1);paintTimer();if(timerSeconds===0){stopTimer();toast('Descanso terminado. ¡A por la siguiente serie!');if(navigator.vibrate)navigator.vibrate([180,80,180]);}},1000); });
+$('timerReset').addEventListener('click',()=>{stopTimer();timerSeconds=60;paintTimer();});
+$('timerMinus').addEventListener('click',()=>{timerSeconds=Math.max(0,timerSeconds-15);paintTimer();});
+$('timerPlus').addEventListener('click',()=>{timerSeconds=Math.min(599,timerSeconds+15);paintTimer();});
+let swRunning=false,swStarted=0,swElapsed=0,swInterval=null,swLaps=[];
+function swFormat(ms){const t=Math.floor(ms/100);const m=String(Math.floor(t/600)).padStart(2,'0');const sec=String(Math.floor(t/10)%60).padStart(2,'0');return `${m}:${sec}.${t%10}`;}
+function swNow(){return swElapsed+(swRunning?performance.now()-swStarted:0);}
+function swPaint(){ $('stopwatchDisplay').textContent=swFormat(swNow());$('stopwatchStart').textContent=swRunning?'Pausar':'Iniciar'; }
+$('stopwatchStart').addEventListener('click',()=>{if(swRunning){swElapsed=swNow();swRunning=false;clearInterval(swInterval);swInterval=null;}else{swStarted=performance.now();swRunning=true;swInterval=setInterval(swPaint,50);}swPaint();});
+$('stopwatchReset').addEventListener('click',()=>{swRunning=false;clearInterval(swInterval);swInterval=null;swElapsed=0;swLaps=[];$('stopwatchLaps').innerHTML='';swPaint();});
+$('stopwatchLap').addEventListener('click',()=>{if(!swRunning&&swElapsed===0)return;swLaps.unshift(swFormat(swNow()));$('stopwatchLaps').innerHTML=swLaps.slice(0,5).map((v,i)=>`<div class="flex justify-between"><span>Vuelta ${swLaps.length-i}</span><strong>${v}</strong></div>`).join('');});
+function renderCalendar(){ const grid=$('calendarGrid'); grid.innerHTML=schedule.map((type,i)=>{const day=i+1,done=state.completedDays.includes(day);return `<button class="calendar-day ${type==='R'?'rest':'training'} ${done?'done':''}" data-calendar-day="${day}" aria-pressed="${day===selectedDay}" aria-label="Día ${day}: ${dayNames[type]}${done?', completado':''}"><span>${day}</span><strong>${type==='R'?'·':type}</strong></button>`}).join(''); }
+function renderStats(){ const count=state.completedDays.length; $('statCompleted').textContent=count; $('statRemaining').textContent=100-count; $('statPercent').textContent=`${count}%`; const labels=['Adaptación','Volumen e intensidad','Fuerza e hipertrofia','Consolidación']; $('phaseStats').innerHTML=labels.map((label,i)=>{const start=i*25+1,end=(i+1)*25,done=state.completedDays.filter(d=>d>=start&&d<=end).length;return `<div><div class="flex justify-between text-sm mb-2"><span>${label}</span><span class="text-muted">${done}/25</span></div><div class="meter"><div class="meter-fill" style="width:${done/25*100}%"></div></div></div>`}).join(''); }
+$('calendarGrid').addEventListener('click',e=>{const b=e.target.closest('[data-calendar-day]');if(b)selectDay(b.dataset.calendarDay);});
+$('exportBtn').addEventListener('click',()=>{const payload={app:'FULLBODY 100 días',exportedAt:new Date().toISOString(),schedule,completedDays:state.completedDays,days:state.days};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='fullbody-progreso.json';a.click();URL.revokeObjectURL(url);toast('Copia de datos exportada');});
+
+function defaultReps(scheme){const m=String(scheme).match(/[×x]\s*(\d+)(?:[–-](\d+))?/i);if(!m)return 0;return Math.round((Number(m[1])+Number(m[2]||m[1]))/2);}
+function renderDayPicker() {
+ const container=$('dayPicker');
+ const weekStart=Math.floor((selectedDay-1)/7)*7+1, weekEnd=Math.min(100,weekStart+6);
+ $('weekTitle').textContent=`Semana ${Math.ceil(selectedDay/7)} · Días ${weekStart}–${weekEnd}`;
+ container.innerHTML = Array.from({length:weekEnd-weekStart+1},(_,i)=>{
+   const day=weekStart+i,type=schedule[day-1],active=day===selectedDay,done=state.completedDays.includes(day);
+   return `<button class="day-pill ${active?'':'text-white'}" data-day="${day}" aria-pressed="${active}" aria-label="Día ${day}, ${dayNames[type]}">
+     <span class="small">${done?'✓':type==='R'?'DESC.':'DÍA'}</span><strong>${String(day).padStart(2,'0')}</strong>
+     <span class="small">${type==='R'?'Libre':type}</span></button>`;
+ }).join('');
+}
+function render() {
+ const type=sessionType(),phase=phaseFor(selectedDay),d=dayState();
+ $('phaseLabel').textContent=phase.label; $('dayPhase').textContent=phase.range;
+ $('dayStatus').textContent=`DÍA ${selectedDay} · ${dayNames[type].toUpperCase()}`;
+ $('heroDay').textContent=String(selectedDay).padStart(2,'0');
+ $('sessionBadge').textContent=dayNames[type].toUpperCase();
+ $('sessionTitle').textContent=type==='R'?'Recupera y recarga':workouts[type].title;
+ $('sessionDesc').textContent=type==='R'?'Hoy toca descanso. Si te apetece, paseo o movilidad ligera; continúa con el siguiente día del calendario.':workouts[type].desc;
+ $('finishBtn').textContent=state.completedDays.includes(selectedDay)?'Sesión completada ✓':'Marcar sesión como completada ✓';
+ $('loadInput').value=d.load||''; $('rpeInput').value=d.rpe||''; $('notesInput').value=d.notes||'';
+ const content=$('workoutContent');
+ if(type==='R') {
+  content.innerHTML=`<div class="exercise-card p-5"><div class="visual rounded-2xl mb-4">${iconSvg('core')}</div><h3 class="text-xl font-black">Descanso / actividad ligera</h3><p class="text-sm text-muted mt-2">El plan contempla días de descanso o paseo. No hace falta compensar ni acumular sesiones.</p><div class="mt-4 tag inline-block">Recuperación</div></div>`;
+ } else {
+  content.innerHTML=workouts[type].exercises.map((e,index)=>{
+   const [id,name,scheme,rest,muscles]=e,sets=getSeriesCount(scheme);
+   const checks=Array.from({length:sets},(_,i)=>{
+    const key=`${id}-set-${i+1}`,done=!!d.series[key],repKey=`${key}-reps`,repValue=d.reps?.[repKey] ?? defaultReps(scheme);
+    return `<div class="series-row ${done?'done':''}"><input class="series-check" type="checkbox" data-series="${safe(key)}" ${done?'checked':''} aria-label="Marcar serie ${i+1} de ${safe(name)}"><span class="series-label flex-1 text-sm font-semibold">Serie ${i+1}<span class="block text-xs text-muted font-normal mt-1">${safe(scheme)}</span></span><label class="text-center text-xs text-muted">${/\bs\b/i.test(scheme)?'Seg.':'Reps'}<select class="rep-select block mt-1" data-reps="${safe(repKey)}" aria-label="Repeticiones serie ${i+1}">${Array.from({length:61},(_,n)=>`<option value="${n}" ${n===Number(repValue)?'selected':''}>${n}</option>`).join('')}</select></label></div>`;
+   }).join('');
+   return `<article class="exercise-card" data-exercise="${safe(id)}">
+     <div class="visual">${iconSvg(name)}<span class="absolute bottom-3 left-3 text-[10px] tracking-widest text-white/50 uppercase">Ejercicio ${String(index+1).padStart(2,'0')}</span></div>
+     <div class="p-4">
+       <div class="flex justify-between items-start gap-3"><div class="min-w-0"><h3 class="text-lg font-extrabold leading-snug">${safe(name)}</h3><p class="text-xs text-muted mt-1">${safe(muscles)}</p></div><span class="tag shrink-0">${safe(rest)}</span></div>
+       <div class="flex flex-wrap gap-2 mt-3"><span class="tag">Series: ${sets} base</span><span class="tag">${safe(scheme.split('×').slice(1).join('×').trim()||scheme)}</span></div>
+       <div class="space-y-2 mt-4">${checks}</div>
+     </div></article>`;
+  }).join('');
+ }
+ updateProgress(); renderDayPicker(); renderCalendar(); renderStats(); renderCatalog();
+}
+
+function renderCatalog(){ $('exerciseCatalog').innerHTML=exerciseCatalog.map((e,i)=>`<article class="catalog-card"><div class="flex items-start justify-between gap-3"><h3 class="font-bold">${i+1}. ${safe(e[0])}</h3><span class="tag">${i+1}</span></div><p class="text-sm text-white/80 mt-2">${safe(e[1])}</p><p class="text-xs text-muted mt-1">${safe(e[2])}</p></article>`).join(''); }
+$('calendarToggle').addEventListener('click',()=>{const sec=$('calendarSection'),open=sec.hidden;sec.hidden=!open;$('calendarToggle').textContent=open?'Ocultar calendario ﹀':'Ver calendario completo ﹀';$('calendarToggle').setAttribute('aria-expanded',String(open));if(open)sec.scrollIntoView({behavior:'smooth',block:'start'});});
+function updateProgress() {
+ const type=sessionType(),total=totalForDay(selectedDay),done=completedForDay(selectedDay);
+ $('sessionCount').textContent=`${Math.min(done,total)}/${total}`;
+ $('sessionMeter').style.width=`${total?Math.min(100,done/total*100):0}%`;
+ const count=state.completedDays.length;
+ $('overallCount').textContent=`${count}/100 días completados`;
+ $('overallMeter').style.width=`${count}%`;
+}
+function toast(message) { const el=$('toast');el.textContent=message;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),1900); }
+function selectDay(day) { selectedDay=Math.max(1,Math.min(100,Number(day)||1));saveState();render();window.scrollTo({top:0,behavior:'smooth'}); }
+function jumpToCurrent() {
+ // El plan es relativo: toma como día 1 la primera fecha que el usuario elija al pulsar.
+ const start=localStorage.getItem('fullbody-start-date');
+ if(!start){localStorage.setItem('fullbody-start-date',new Date().toISOString().slice(0,10));selectDay(1);toast('Día 1 fijado para hoy');return;}
+ const elapsed=Math.floor((new Date().setHours(0,0,0,0)-new Date(start+'T00:00:00').getTime())/86400000)+1;
+ selectDay(Math.max(1,Math.min(100,elapsed)));
+}
+$('dayPicker').addEventListener('click',e=>{const btn=e.target.closest('[data-day]');if(btn)selectDay(btn.dataset.day);});
+$('todayBtn').addEventListener('click',jumpToCurrent);
+$('workoutContent').addEventListener('change',e=>{
+ const reps=e.target.closest('[data-reps]');if(reps){const d=dayState();d.reps=d.reps||{};d.reps[reps.dataset.reps]=Number(reps.value);saveState();return;}
+ const input=e.target.closest('[data-series]');if(!input)return;
+ dayState().series[input.dataset.series]=input.checked;saveState();render();
+});
+function saveNote(field,value) { dayState()[field]=value;saveState(); }
+$('loadInput').addEventListener('input',e=>saveNote('load',e.target.value));
+$('rpeInput').addEventListener('input',e=>saveNote('rpe',e.target.value));
+$('notesInput').addEventListener('input',e=>saveNote('notes',e.target.value));
+$('finishBtn').addEventListener('click',()=>{
+ if(sessionType()==='R'){toast('Día de descanso: no hay sesión que completar.');return;}
+ if(!state.completedDays.includes(selectedDay))state.completedDays.push(selectedDay);
+ saveState();render();toast('Sesión guardada. Buen trabajo.');
+});
+$('resetBtn').addEventListener('click',()=>{
+ if(!confirm(`¿Reiniciar el entrenamiento del día ${selectedDay}? Se borrarán sus series y notas, pero no los demás días.`))return;
+ state.days[selectedDay]={series:{},load:'',rpe:'',notes:''};
+ state.completedDays=state.completedDays.filter(d=>d!==selectedDay);
+ saveState();render();toast('Día reiniciado');
+});
+document.querySelectorAll('[data-nav]').forEach(btn=>btn.addEventListener('click',()=>{
+ const dest=btn.dataset.nav;
+ document.querySelectorAll('[data-nav]').forEach(b=>b.removeAttribute('aria-current'));btn.setAttribute('aria-current','page');
+ const sections=['exerciseSection','progressSection'];sections.forEach(id=>$(id).hidden=true);
+ if(dest==='exercises'){$('exerciseSection').hidden=false;$('exerciseSection').scrollIntoView({behavior:'smooth',block:'start'});}
+ if(dest==='stats'){$('progressSection').hidden=false;$('progressSection').scrollIntoView({behavior:'smooth',block:'start'});}
+ if(dest==='workout'){$('sessionHero').scrollIntoView({behavior:'smooth',block:'start'});}
+}));
+render();
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(err => console.warn('Service worker no disponible', err)));
+}
+</script>
+</body>
+</html>

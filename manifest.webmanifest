@@ -1,0 +1,12 @@
+{
+  "name": "FULLBODY — Entrenamiento en casa",
+  "short_name": "FULLBODY",
+  "description": "Plan Full Body de 100 días con seguimiento de series y progreso.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "lang": "es",
+  "icons": [{"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
